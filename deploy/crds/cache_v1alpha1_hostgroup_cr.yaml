@@ -1,0 +1,7 @@
+apiVersion: cache.sulzer.de/v1alpha1
+kind: HostGroup
+metadata:
+  name: example-hostgroup
+spec:
+  # Add fields here
+  size: 3
