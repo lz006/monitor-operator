@@ -2,6 +2,8 @@ package awxmgr
 
 import (
 	"runtime/debug"
+	"sort"
+	"strconv"
 	"time"
 
 	"github.com/lz006/extended-awx-client-go/eawx"
@@ -136,8 +138,90 @@ func pollGroups(connection *eawx.Connection) []*eawx.Group {
 	// Build map from result
 	groups := getGroupsResponse.Results()
 
+	// Sort groups array because it came up that unmarshalling produces
+	// randomly ordered arrays which in turn causes instability
+	sortGroups(groups)
+
+	// Make sure that each group contains only unique endpoints
+	ensureUniqueEndpointsInGroup(groups)
+
 	return groups
 
+}
+
+func sortGroups(groupArray []*eawx.Group) {
+	for _, group := range groupArray {
+
+		// Build map of keys
+		keys := make([]string, 0, len(group.Vars().Endpoints()))
+
+		epMap := make(map[string]*eawx.Endpoint)
+
+		for _, ep := range group.Vars().Endpoints() {
+
+			// Build a key from current endpoint
+			stringKey := strconv.Itoa(int(ep.Port())) + ep.PortName() + ep.Protocol() + ep.Endpoint()
+
+			keys = append(keys, stringKey)
+
+			// Add endpoint to map
+			epMap[stringKey] = ep
+		}
+
+		// Sort Keys
+		sort.Strings(keys)
+
+		// Build sorted array
+		newEndpointArray := []*eawx.Endpoint{}
+		for _, k := range keys {
+			newEndpointArray = append(newEndpointArray, epMap[k])
+		}
+
+		if len(newEndpointArray) > 0 {
+			group.Vars().SetEndpoints(newEndpointArray)
+		}
+
+	}
+}
+
+func ensureUniqueEndpointsInGroup(groupArray []*eawx.Group) {
+	for _, group := range groupArray {
+
+		// Ensure unique combination of Port, Endpoint (Path) & Protocol
+		epMap := make(map[string]*eawx.Endpoint)
+
+		// Build map of keys for later iteration
+		keys := make([]string, 0, len(group.Vars().Endpoints()))
+
+		for i := 0; i < len(group.Vars().Endpoints()); i++ {
+
+			ep := group.Vars().Endpoints()[i]
+
+			keyString := strconv.Itoa(int(ep.Port())) + ep.Endpoint() + ep.Protocol()
+
+			keys = append(keys, keyString)
+			epMap[keyString] = ep
+		}
+
+		// Ensure unique port names
+		resultMap := make(map[string]*eawx.Endpoint)
+
+		// Use sorted keys for stable iteration
+		for i := 0; i < len(keys); i++ {
+			resultMap[epMap[keys[i]].PortName()] = epMap[keys[i]]
+		}
+
+		// Build final array with unique elements
+		newEndpointArray := []*eawx.Endpoint{}
+		for _, val := range resultMap {
+			newEndpointArray = append(newEndpointArray, val)
+		}
+
+		if len(newEndpointArray) > 0 {
+			group.Vars().SetEndpoints(newEndpointArray)
+		}
+
+	}
 }
 
 func mergeToHostGroup(groups []*eawx.Group, hosts *map[string][]*eawx.Host) *map[string]crdmgr.HostGroup {

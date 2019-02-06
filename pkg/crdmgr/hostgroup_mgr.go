@@ -32,6 +32,8 @@ func Start(channel chan *map[string]HostGroup, mgr mgr.Manager) {
 						manageOutsideHostGroups(hostGroup)
 					case "inside":
 						manageInsideHostGroups(hostGroup)
+					case "absent":
+						deleteByAWXHostGroup(hostGroup)
 					default:
 						log.Info("Group: \"" + group.Name() + "\" has unknown type \"" + mType + "\" configured -> Ignoring group")
 					}
@@ -45,23 +47,44 @@ func Start(channel chan *map[string]HostGroup, mgr mgr.Manager) {
 				}
 			}
 
-			// Delete instances of "CRD: HostGroup" if they do not exist in awx anymore
-			// First load all existing instances
-			existingHostGroups := getHostGroups()
-
-			// Loop trough exisiting instances and check if their corresnponding group in awx inventory still exist
-			for _, k8sInstance := range existingHostGroups.Items {
-				if _, ok := (*awxHostGroups)[k8sInstance.Name]; !ok {
-					// AWX HostGroup does not exist anymore so delete it in k8s/openshift
-					deleteHostGroup(&k8sInstance)
-					k8sInstance.GetName()
-					log.Info("HostGroup: \"" + k8sInstance.GetName() + "\" deleted successfully - No AWX pendant anymore")
-				}
-			}
+			purgeHostGroups(awxHostGroups)
 
 		}
 	}
 
+}
+
+func purgeHostGroups(awxHostGroups *map[string]HostGroup) {
+	// Purging:
+	// Delete instances of "CRD: HostGroup" if they do not exist in awx anymore
+	// First load all existing instances
+	existingHostGroups := getHostGroups()
+
+	// Loop trough exisiting instances and check if their corresnponding group in awx inventory still exist
+	for _, k8sInstance := range existingHostGroups.Items {
+		if _, ok := (*awxHostGroups)[k8sInstance.Name]; !ok {
+			// AWX HostGroup does not exist anymore so delete it in k8s/openshift
+			deleteHostGroup(&k8sInstance)
+			log.Info("HostGroup: \"" + k8sInstance.GetName() + "\" deleted successfully - No AWX pendant anymore")
+		} else if (*awxHostGroups)[k8sInstance.Name].Group().Vars().MType() == "absent" {
+			// AWX HostGroup still exists but is marked for deletion so delete it in k8s/openshift too
+			deleteHostGroup(&k8sInstance)
+			log.Info("HostGroup: \"" + k8sInstance.GetName() + "\" deleted successfully - Marked as \"absent\" on AWX")
+		}
+	}
+}
+
+func deleteByAWXHostGroup(hostGroup HostGroup) {
+	existingHostGroups := getHostGroups()
+
+	// Loop trough exisiting instances and look for corresnponding group
+	for _, k8sInstance := range existingHostGroups.Items {
+		if k8sInstance.Name == hostGroup.Group().Name() {
+			// AWX HostGroup still exists but is marked for deletion so delete it in k8s/openshift too
+			deleteHostGroup(&k8sInstance)
+			log.Info("HostGroup: \"" + k8sInstance.GetName() + "\" deleted successfully - Marked as \"absent\" on AWX")
+		}
+	}
 }
 
 func manageOutsideHostGroups(candidate HostGroup) {
@@ -110,17 +133,53 @@ func manageOutsideHostGroups(candidate HostGroup) {
 }
 
 func manageInsideHostGroups(hostGroup HostGroup) {
-	getHostGroups()
-	log.Info("inside")
+	log.Info("Services mangaged by k8s/openshit will be ignored by now. If there is a demand such a feature can be implemented very quickly. Skipped HostGroup: \"" + hostGroup.Group().Name() + "\"")
 }
 
 func isHostGroupEqualTo(new *cachev1alpha1.HostGroup, old *cachev1alpha1.HostGroup) bool {
 
-	if !reflect.DeepEqual(new.Spec.HostGroup, old.Spec.HostGroup) {
-		return false
-	} else if !reflect.DeepEqual(new.Spec.Endpoints, old.Spec.Endpoints) {
-		return false
-	} else {
-		return true
+	result := true
+
+	if len(new.Spec.HostGroup.Vars.Endpoints) != len(old.Spec.HostGroup.Vars.Endpoints) ||
+		len(new.Spec.Endpoints) != len(old.Spec.Endpoints) ||
+		new.Spec.HostGroup.Id != old.Spec.HostGroup.Id ||
+		new.Spec.HostGroup.Name != old.Spec.HostGroup.Name {
+
+		result = false
+
+		return result
 	}
+
+	// Building maps is necessary due not predictible order of elements in arrays
+	// Compare cachev1alpha1.Endpoint objects
+	newHGR := make(map[string]*cachev1alpha1.Endpoint)
+	for _, ep := range new.Spec.HostGroup.Vars.Endpoints {
+		newHGR[ep.PortName] = &ep
+	}
+
+	oldHGR := make(map[string]*cachev1alpha1.Endpoint)
+	for _, ep := range old.Spec.HostGroup.Vars.Endpoints {
+		oldHGR[ep.PortName] = &ep
+	}
+
+	if !reflect.DeepEqual(newHGR, oldHGR) {
+		result = false
+	}
+
+	// Compare strings
+	newEP := make(map[string]string)
+	for _, val := range new.Spec.Endpoints {
+		newEP[val] = val
+	}
+
+	oldEP := make(map[string]string)
+	for _, val := range old.Spec.Endpoints {
+		oldEP[val] = val
+	}
+
+	if !reflect.DeepEqual(newEP, oldEP) {
+		result = false
+	}
+
+	return result
 }

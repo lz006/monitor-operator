@@ -2,7 +2,6 @@ package hostgroup
 
 import (
 	"context"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -14,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -122,11 +122,19 @@ func (r *ReconcileHostGroup) Reconcile(request reconcile.Request) (reconcile.Res
 
 	// Define a new Endpoints object
 	endpoints := r.endpointsForHostGroup(instance)
-	subsets := endpoints.Subsets[0].Ports[0]
-	reqLogger.Info(subsets.Name)
+	// Define a new Service object
+	service := r.serviceForHostGroup(instance)
+	// Define a new ServiceMonitor object
+	serviceMonitor := r.serviceMonitorForHostGroup(instance)
 
 	// Set HostGroup instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, endpoints, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
+	if err := controllerutil.SetControllerReference(instance, service, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
+	if err := controllerutil.SetControllerReference(instance, serviceMonitor, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
 
@@ -143,11 +151,51 @@ func (r *ReconcileHostGroup) Reconcile(request reconcile.Request) (reconcile.Res
 			return reconcile.Result{}, err
 		}
 
-		// Endpoints created successfully - don't requeue
-		return reconcile.Result{}, nil
+		// Endpoints created successfully
+		return reconcile.Result{Requeue: true}, nil
 	} else if err != nil {
 
 		reqLogger.Error(err, "Failed to get Endpoints: "+instance.Name)
+		return reconcile.Result{}, err
+	}
+	// Check if this Service already exists
+	foundService := &corev1.Service{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: service.Name, Namespace: service.Namespace}, foundService)
+	// Create Service object if does not exists yet
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new Service", "Service.Namespace", service.Namespace, "Service.Name", service.Name)
+		err = r.client.Create(context.TODO(), service)
+		if err != nil {
+
+			reqLogger.Error(err, "Failed to create Service: "+instance.Name)
+			return reconcile.Result{}, err
+		}
+
+		// Service created successfully - don't requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+
+		reqLogger.Error(err, "Failed to get Service: "+instance.Name)
+		return reconcile.Result{}, err
+	}
+	// Check if this ServiceMonitor already exists
+	foundServiceMonitor := &promonv1.ServiceMonitor{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: serviceMonitor.Name, Namespace: serviceMonitor.Namespace}, foundServiceMonitor)
+	// Create ServiceMonitor object if does not exists yet
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new ServiceMonitor", "ServiceMonitor.Namespace", serviceMonitor.Namespace, "ServiceMonitor.Name", serviceMonitor.Name)
+		err = r.client.Create(context.TODO(), serviceMonitor)
+		if err != nil {
+
+			reqLogger.Error(err, "Failed to create ServiceMonitor: "+instance.Name)
+			return reconcile.Result{}, err
+		}
+
+		// ServiceMonitor created successfully - don't requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+
+		reqLogger.Error(err, "Failed to get ServiceMonitor: "+instance.Name)
 		return reconcile.Result{}, err
 	}
 
@@ -162,56 +210,38 @@ func (r *ReconcileHostGroup) Reconcile(request reconcile.Request) (reconcile.Res
 		}
 
 		reqLogger.Info("Endpoints updates successfully: " + instance.Name)
-		return reconcile.Result{}, nil
+		return reconcile.Result{Requeue: true}, nil
+	}
+
+	// Check if Service object differs from current HostGroup configuration
+	if !isServiceEqualTo(service, foundService) && found.GetLabels()["operator-managed"] == "true" {
+		foundService.Spec.Ports = service.Spec.Ports
+		err = r.client.Update(context.TODO(), foundService)
+		if err != nil {
+
+			reqLogger.Error(err, "Failed to update Service: "+instance.Name)
+			return reconcile.Result{}, err
+		}
+
+		reqLogger.Info("Service updates successfully: " + instance.Name)
+		return reconcile.Result{Requeue: true}, nil
+	}
+
+	// Check if ServiceMonitor object differs from current HostGroup configuration
+	if !isServiceMonitorEqualTo(serviceMonitor, foundServiceMonitor) && found.GetLabels()["operator-managed"] == "true" {
+		foundServiceMonitor.Spec.Endpoints = serviceMonitor.Spec.Endpoints
+		err = r.client.Update(context.TODO(), foundServiceMonitor)
+		if err != nil {
+
+			reqLogger.Error(err, "Failed to update ServiceMonitor: "+instance.Name)
+			return reconcile.Result{}, err
+		}
+
+		reqLogger.Info("ServiceMonitor updates successfully: " + instance.Name)
+		return reconcile.Result{Requeue: true}, nil
 	}
 
 	return reconcile.Result{}, nil
-}
-
-func isEndpointsEqualTo(new *corev1.Endpoints, old *corev1.Endpoints) bool {
-	result := true
-
-	if len(new.Subsets[0].Addresses) == len(old.Subsets[0].Addresses) &&
-		len(new.Subsets[0].Ports) == len(old.Subsets[0].Ports) {
-
-		newAddrMap := make(map[string]corev1.EndpointAddress)
-		for _, ae := range new.Subsets[0].Addresses {
-			newAddrMap[ae.IP] = ae
-		}
-		oldAddrMap := make(map[string]corev1.EndpointAddress)
-		for _, ae := range old.Subsets[0].Addresses {
-			oldAddrMap[ae.IP] = ae
-		}
-
-		newPortMap := make(map[string]corev1.EndpointPort)
-		for _, ep := range new.Subsets[0].Ports {
-			newPortMap[strconv.Itoa(int(ep.Port))] = ep
-		}
-
-		oldPortMap := make(map[string]corev1.EndpointPort)
-		for _, ep := range old.Subsets[0].Ports {
-			oldPortMap[strconv.Itoa(int(ep.Port))] = ep
-		}
-
-		// Begin comparsion
-		for _, ae := range newAddrMap {
-			if !reflect.DeepEqual(newAddrMap[ae.IP].IP, oldAddrMap[ae.IP].IP) ||
-				!reflect.DeepEqual(newAddrMap[ae.IP].Hostname, oldAddrMap[ae.IP].Hostname) {
-				result = false
-			}
-		}
-
-		for key, _ := range newPortMap {
-			if !reflect.DeepEqual(newPortMap[key], oldPortMap[key]) {
-				result = false
-			}
-		}
-
-	} else {
-		result = false
-	}
-
-	return result
 }
 
 func (r *ReconcileHostGroup) endpointsForHostGroup(hgr *cachev1alpha1.HostGroup) *corev1.Endpoints {
@@ -272,13 +302,126 @@ func endpointPortsForHostGroup(hgr *cachev1alpha1.HostGroup) []corev1.EndpointPo
 		case "UDO":
 			protocol = corev1.ProtocolUDP
 		default:
-
+			protocol = corev1.ProtocolTCP
 		}
 
 		result = append(result, corev1.EndpointPort{
 			Name:     endpoint.PortName,
 			Port:     endpoint.Port,
 			Protocol: protocol,
+		})
+	}
+
+	return result
+}
+
+func (r *ReconcileHostGroup) serviceForHostGroup(hgr *cachev1alpha1.HostGroup) *corev1.Service {
+	ls := crdmgr.LabelsForHostGroup(hgr.Name)
+	servicePorts := servicePortsForHostGroup(hgr)
+
+	svc := &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      hgr.Name,
+			Namespace: hgr.Namespace,
+			Labels:    ls,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{},
+			Ports:    servicePorts,
+		},
+	}
+	// Set Memcached instance as the owner and controller
+	controllerutil.SetControllerReference(hgr, svc, r.scheme)
+	return svc
+}
+
+func servicePortsForHostGroup(hgr *cachev1alpha1.HostGroup) []corev1.ServicePort {
+	var result []corev1.ServicePort
+
+	// Ensure unique combination of Port & Protocol which might could have duplicates with different endpoints (paths)
+	uniquePorts := make(map[string]cachev1alpha1.Endpoint)
+	for _, ep := range hgr.Spec.HostGroup.Vars.Endpoints {
+		uniquePorts[strconv.Itoa(int(ep.Port))+ep.Protocol] = ep
+	}
+
+	for _, endpoint := range uniquePorts {
+
+		var protocol corev1.Protocol
+		switch tmpProto := strings.ToUpper(endpoint.Protocol); tmpProto {
+		case "TCP":
+			protocol = corev1.ProtocolTCP
+		case "STCP":
+			protocol = corev1.ProtocolSCTP
+		case "UDO":
+			protocol = corev1.ProtocolUDP
+		default:
+			protocol = corev1.ProtocolTCP
+		}
+
+		result = append(result, corev1.ServicePort{
+			Name:       endpoint.PortName,
+			Port:       endpoint.Port,
+			Protocol:   protocol,
+			TargetPort: intstr.FromInt(int(endpoint.Port)),
+		})
+	}
+
+	return result
+}
+
+func (r *ReconcileHostGroup) serviceMonitorForHostGroup(hgr *cachev1alpha1.HostGroup) *promonv1.ServiceMonitor {
+	ls := crdmgr.LabelsForHostGroup(hgr.Name)
+	endpoints := promEndpointForHostGroup(hgr)
+
+	sm := &promonv1.ServiceMonitor{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "monitoring.coreos.com/v1",
+			Kind:       "ServiceMonitor",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      hgr.Name,
+			Namespace: hgr.Namespace,
+			Labels:    ls,
+		},
+		Spec: promonv1.ServiceMonitorSpec{
+			Selector: metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"k8s-app": hgr.Name,
+				},
+			},
+			Endpoints: endpoints,
+		},
+	}
+	// Set HostGroup instance as the owner and controller
+	controllerutil.SetControllerReference(hgr, sm, r.scheme)
+	return sm
+}
+
+func promEndpointForHostGroup(hgr *cachev1alpha1.HostGroup) []promonv1.Endpoint {
+	var result []promonv1.Endpoint
+
+	for _, ep := range hgr.Spec.HostGroup.Vars.Endpoints {
+
+		targetPort := intstr.FromInt(ep.TargetPort)
+
+		result = append(result, promonv1.Endpoint{
+			Port:          ep.PortName,
+			TargetPort:    &targetPort,
+			Path:          ep.Endpoint,
+			Scheme:        ep.Scheme,
+			Interval:      ep.Interval,
+			ScrapeTimeout: ep.ScrapeTimeout,
+			TLSConfig: &promonv1.TLSConfig{
+				CAFile:             ep.TLSConf.CAFile,
+				ServerName:         ep.TLSConf.Hostname,
+				InsecureSkipVerify: ep.TLSConf.InsecureSkipVerify,
+			},
+			BearerTokenFile: ep.BearerTokenFile,
+			HonorLabels:     ep.HonorLabels,
 		})
 	}
 
