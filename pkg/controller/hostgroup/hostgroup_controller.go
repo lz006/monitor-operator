@@ -2,9 +2,13 @@ package hostgroup
 
 import (
 	"context"
+	"reflect"
+	"strconv"
+	"strings"
 
 	promonv1 "github.com/lz006/monitor-operator/pkg/apis/cache/v1"
 	cachev1alpha1 "github.com/lz006/monitor-operator/pkg/apis/cache/v1alpha1"
+	"github.com/lz006/monitor-operator/pkg/crdmgr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -116,54 +120,167 @@ func (r *ReconcileHostGroup) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 
-	// Define a new Pod object
-	pod := newPodForCR(instance)
+	// Define a new Endpoints object
+	endpoints := r.endpointsForHostGroup(instance)
+	subsets := endpoints.Subsets[0].Ports[0]
+	reqLogger.Info(subsets.Name)
 
 	// Set HostGroup instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(instance, endpoints, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
 
-	// Check if this Pod already exists
-	found := &corev1.Pod{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
+	// Check if this Endpoints already exists
+	found := &corev1.Endpoints{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: endpoints.Name, Namespace: endpoints.Namespace}, found)
+	// Create Endpoints objects if does not exists yet
 	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-		err = r.client.Create(context.TODO(), pod)
+		reqLogger.Info("Creating a new Endpoints", "Endpoints.Namespace", endpoints.Namespace, "Endpoints.Name", endpoints.Name)
+		err = r.client.Create(context.TODO(), endpoints)
 		if err != nil {
+
+			reqLogger.Error(err, "Failed to create Endpoints: "+instance.Name)
 			return reconcile.Result{}, err
 		}
 
-		// Pod created successfully - don't requeue
+		// Endpoints created successfully - don't requeue
 		return reconcile.Result{}, nil
 	} else if err != nil {
+
+		reqLogger.Error(err, "Failed to get Endpoints: "+instance.Name)
 		return reconcile.Result{}, err
 	}
 
-	// Pod already exists - don't requeue
-	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
+	// Check if Endpoints object differs from current HostGroup configuration
+	if !isEndpointsEqualTo(endpoints, found) && found.GetLabels()["operator-managed"] == "true" {
+		found.Subsets = endpoints.Subsets
+		err = r.client.Update(context.TODO(), found)
+		if err != nil {
+
+			reqLogger.Error(err, "Failed to update Endpoints: "+instance.Name)
+			return reconcile.Result{}, err
+		}
+
+		reqLogger.Info("Endpoints updates successfully: " + instance.Name)
+		return reconcile.Result{}, nil
+	}
+
 	return reconcile.Result{}, nil
 }
 
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newPodForCR(cr *cachev1alpha1.HostGroup) *corev1.Pod {
-	labels := map[string]string{
-		"app": cr.Name,
+func isEndpointsEqualTo(new *corev1.Endpoints, old *corev1.Endpoints) bool {
+	result := true
+
+	if len(new.Subsets[0].Addresses) == len(old.Subsets[0].Addresses) &&
+		len(new.Subsets[0].Ports) == len(old.Subsets[0].Ports) {
+
+		newAddrMap := make(map[string]corev1.EndpointAddress)
+		for _, ae := range new.Subsets[0].Addresses {
+			newAddrMap[ae.IP] = ae
+		}
+		oldAddrMap := make(map[string]corev1.EndpointAddress)
+		for _, ae := range old.Subsets[0].Addresses {
+			oldAddrMap[ae.IP] = ae
+		}
+
+		newPortMap := make(map[string]corev1.EndpointPort)
+		for _, ep := range new.Subsets[0].Ports {
+			newPortMap[strconv.Itoa(int(ep.Port))] = ep
+		}
+
+		oldPortMap := make(map[string]corev1.EndpointPort)
+		for _, ep := range old.Subsets[0].Ports {
+			oldPortMap[strconv.Itoa(int(ep.Port))] = ep
+		}
+
+		// Begin comparsion
+		for _, ae := range newAddrMap {
+			if !reflect.DeepEqual(newAddrMap[ae.IP].IP, oldAddrMap[ae.IP].IP) ||
+				!reflect.DeepEqual(newAddrMap[ae.IP].Hostname, oldAddrMap[ae.IP].Hostname) {
+				result = false
+			}
+		}
+
+		for key, _ := range newPortMap {
+			if !reflect.DeepEqual(newPortMap[key], oldPortMap[key]) {
+				result = false
+			}
+		}
+
+	} else {
+		result = false
 	}
-	return &corev1.Pod{
+
+	return result
+}
+
+func (r *ReconcileHostGroup) endpointsForHostGroup(hgr *cachev1alpha1.HostGroup) *corev1.Endpoints {
+	ls := crdmgr.LabelsForHostGroup(hgr.Name)
+
+	subsets := endpointSubsetForHostGroup(hgr)
+
+	eps := &corev1.Endpoints{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Endpoints",
+		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
-			Namespace: cr.Namespace,
-			Labels:    labels,
+			Name:      hgr.Name,
+			Namespace: hgr.Namespace,
+			Labels:    ls,
 		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
-				},
-			},
-		},
+		Subsets: subsets,
 	}
+	// Set HostGroup instance as the owner and controller
+	controllerutil.SetControllerReference(hgr, eps, r.scheme)
+	return eps
+}
+
+func endpointSubsetForHostGroup(hgr *cachev1alpha1.HostGroup) []corev1.EndpointSubset {
+	endpointAdresses := endpointAddressesForHostGroup(hgr)
+	endpointPorts := endpointPortsForHostGroup(hgr)
+
+	return []corev1.EndpointSubset{corev1.EndpointSubset{
+		Addresses: endpointAdresses,
+		Ports:     endpointPorts,
+	}}
+}
+
+func endpointAddressesForHostGroup(hgr *cachev1alpha1.HostGroup) []corev1.EndpointAddress {
+	var result []corev1.EndpointAddress
+
+	for _, ip := range hgr.Spec.Endpoints {
+		result = append(result, corev1.EndpointAddress{
+			IP: ip,
+		})
+	}
+
+	return result
+}
+
+func endpointPortsForHostGroup(hgr *cachev1alpha1.HostGroup) []corev1.EndpointPort {
+	var result []corev1.EndpointPort
+
+	for _, endpoint := range hgr.Spec.HostGroup.Vars.Endpoints {
+
+		var protocol corev1.Protocol
+		switch tmpProto := strings.ToUpper(endpoint.Protocol); tmpProto {
+		case "TCP":
+			protocol = corev1.ProtocolTCP
+		case "STCP":
+			protocol = corev1.ProtocolSCTP
+		case "UDO":
+			protocol = corev1.ProtocolUDP
+		default:
+
+		}
+
+		result = append(result, corev1.EndpointPort{
+			Name:     endpoint.PortName,
+			Port:     endpoint.Port,
+			Protocol: protocol,
+		})
+	}
+
+	return result
 }

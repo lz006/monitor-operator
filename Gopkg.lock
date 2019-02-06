@@ -265,14 +265,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6a91d5ca71bccc3de31138adf91d710a9b30512a62bacf8018d26a84a8acb935"
+  digest = "1:c67efaaa95f851c1ebaa3e2dbfc13834964e95361ba72587a996c417eb43ad8b"
   name = "github.com/lz006/extended-awx-client-go"
   packages = [
     "eawx",
     "eawx/internal/data",
   ]
   pruneopts = "NT"
-  revision = "5e6ba51730fa88f5ec6cf1bcc5e12ebfb67f5187"
+  revision = "83327e14c36d489677f2ba1a542eef91b2f663c1"
 
 [[projects]]
   branch = "master"
@@ -320,7 +320,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:830cb4d9e327c3573cced8a3c4fd988b82c2ea29796041c507669f359b434e16"
+  digest = "1:adc68fd3aca4c3c6fc991182aa94f657360a6f901aa1224ac58c058873529d95"
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "pkg/k8sutil",
@@ -329,7 +329,7 @@
     "version",
   ]
   pruneopts = "NT"
-  revision = "9846078381f30db027b2fdac547a8d1ab5ab2194"
+  revision = "2156077650408c236eeb3128e157f83485335eae"
 
 [[projects]]
   digest = "1:93b1d84c5fa6d1ea52f4114c37714cddd84d5b78f151b62bb101128dd51399bf"
@@ -390,7 +390,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:753d988fc383cc61173d5afdf94a149b853c75d399dafacfd93ba5b734e06044"
+  digest = "1:1ff0989c1287a9b47f10bfff607742baa419ccc2bd7e89af5367db0c4db8bf91"
   name = "github.com/prometheus/procfs"
   packages = [
     ".",
@@ -399,7 +399,7 @@
     "xfs",
   ]
   pruneopts = "NT"
-  revision = "316cf8ccfec56d206735d46333ca162eb374da8b"
+  revision = "488faf799f863e27e50c516468f76ae8f1da20a5"
 
 [[projects]]
   digest = "1:1f84287a4ca2c8f729d8155ba4c45915f5854ebbd214e406070779753da68422"
@@ -487,7 +487,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8fb266e7b4ae8f53f7c2f8c5ac42f6d18fd6f54470dc281496bf50360f2a2c44"
+  digest = "1:3bb5c31099b2b50143828828b5601bb7949d51235a35a194db6778e0d252f519"
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -496,7 +496,7 @@
     "windows/svc/eventlog",
   ]
   pruneopts = "NT"
-  revision = "7ae0202eb74c2b534255c71b5a15fa4115aabbcc"
+  revision = "41f3e6584952bb034a481797859f6ab34b6803bd"
 
 [[projects]]
   digest = "1:8c74f97396ed63cc2ef04ebb5fc37bb032871b8fd890a25991ed40974b00cd2a"
@@ -532,7 +532,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:67adc307310c2021701e6da01e822806ed21e01f3bf1abf4fc38ce91ea7fdecb"
+  digest = "1:32df9e9e232d9912cadcbddac93f5662aefd0eb5a92b186a3174025ac50e23c9"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -549,7 +549,7 @@
     "internal/semver",
   ]
   pruneopts = "NT"
-  revision = "7414d4c1f71cec71978b1aec0539171a2e42d230"
+  revision = "379209517ffe9b1ca12ec8db6abe90d4a6605675"
 
 [[projects]]
   digest = "1:902ffa11f1d8c19c12b05cabffe69e1a16608ad03a8899ebcb9c6bde295660ae"
@@ -883,6 +883,7 @@
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
+    "k8s.io/apimachinery/pkg/labels",
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/apimachinery/pkg/types",

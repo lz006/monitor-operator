@@ -28,22 +28,31 @@ type Group struct {
 	Vars Variables `json:"variables,omitempty"`
 }
 
-// Used when unmarshalling Group.Vars which contains a yaml string
 type Variables struct {
-	Type            string    `json:"mo_type,omitempty"`
-	Endpoint        string    `json:"mo_endpoint,omitempty"`
-	BearerTokenFile string    `json:"mo_bearerTokenFile,omitempty"`
-	Port            string    `json:"mo_port,omitempty"`
-	Scheme          string    `json:"mo_scheme,omitempty"`
-	TargetPort      int       `json:"mo_targetPort,omitempty"`
-	TLSConf         TLSConfig `json:"mo_tlsConfig,omitempty"`
+	Type      string     `json:"mo_type,omitempty"`
+	Endpoints []Endpoint `json:"mo_endpoints,omitempty"`
 }
 
-// Used when unmarshalling Variables.TLSConf which contains a yaml string
+type Endpoint struct {
+	Endpoint        string `json:"endpoint,omitempty"`
+	BearerTokenFile string `json:"bearerTokenFile,omitempty"`
+	Port            int32  `json:"port,omitempty"`
+	PortName        string `json:"portName,omitempty"`
+	Protocol        string `json:"protocol,omitempty"`
+	Scheme          string `json:"scheme,omitempty"`
+	TargetPort      int    `json:"targetPort,omitempty"`
+
+	HonorLabels   bool   `json:"honorLabels,omitempty"`
+	Interval      string `json:"interval,omitempty"`
+	ScrapeTimeout string `json:"scrapeTimeout,omitempty"`
+
+	TLSConf TLSConfig `json:"tlsConfig,omitempty"`
+}
+
 type TLSConfig struct {
-	CAFile             string `json:"mo_caFile,omitempty"`
-	Hostname           string `json:"mo_hostname,omitempty"`
-	InsecureSkipVerify bool   `json:"mo_insecureSkipVerify,omitempty"`
+	CAFile             string `json:"caFile,omitempty"`
+	Hostname           string `json:"hostname,omitempty"`
+	InsecureSkipVerify bool   `json:"insecureSkipVerify,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
