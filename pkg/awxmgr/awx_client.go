@@ -1,6 +1,7 @@
 package awxmgr
 
 import (
+	"os"
 	"runtime/debug"
 	"sort"
 	"strconv"
@@ -31,7 +32,7 @@ func Start(channel chan *map[string]crdmgr.HostGroup) {
 			log.Info("Connection to AWX established")
 			break
 		} else {
-			log.Error("Could not get connect to AWX. Next attempt in 30 seconds!")
+			log.Error("Could not get connect to AWX. Next attempt in " + viper.GetString("awx_reconnect_span") + " milliseconds!")
 			time.Sleep(time.Duration(viper.GetInt("awx_reconnect_span") * 1000000))
 		}
 	}
@@ -77,16 +78,29 @@ func Start(channel chan *map[string]crdmgr.HostGroup) {
 
 func buildConnection(connection *eawx.Connection) error {
 
+	// Get env
+	url := getEnv("AWX_URL")
+	user := getEnv("AWX_USER")
+	pw := getEnv("AWX_PW")
+
 	con, err := eawx.NewConnectionBuilder().
-		URL("http://192.168.178.41/api"). // URL is mandatory
-		Username("admin").
-		Password("password").
+		URL(*url). // URL is mandatory
+		Username(*user).
+		Password(*pw).
 		Insecure(true).
 		Build() // Create the client
 
 	(*connection) = (*con)
 
 	return err
+}
+
+func getEnv(key string) *string {
+	val, ok := os.LookupEnv(key)
+	if !ok {
+		panic("Env: \"" + key + "\" not set")
+	}
+	return &val
 }
 
 func pollHosts(connection *eawx.Connection) []*eawx.Host {
@@ -99,7 +113,7 @@ func pollHosts(connection *eawx.Connection) []*eawx.Host {
 	query := makeFilterQuery("awx_hosts_filter_query")
 	getHostsResponse, err := getHostsRequest.Filter(query[0], query[1]).Send()
 	if err != nil {
-		panic(err)
+		panic(err.Error() + " Query part1: " + query[0] + " query part2: " + query[1])
 	}
 
 	hosts := getHostsResponse.Results()
@@ -157,7 +171,7 @@ func pollGroups(connection *eawx.Connection) []*eawx.Group {
 	query := makeFilterQuery("awx_groups_filter_query")
 	getGroupsResponse, err := getGroupsRequest.Filter(query[0], query[1]).Send()
 	if err != nil {
-		panic(err)
+		panic(err.Error() + " Query part1: " + query[0] + " query part2: " + query[1])
 	}
 
 	// Build map from result

@@ -34,10 +34,9 @@ rules:
 - apiGroups:
   - monitoring.coreos.com
   resources:
-  - servicemonitors
+  - '*'
   verbs:
-  - get
-  - create
+  - '*'
 - apiGroups:
   - cache.sulzer.de
   resources:
