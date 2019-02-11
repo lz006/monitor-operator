@@ -7,20 +7,24 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/spf13/viper"
+
 	"github.com/lz006/monitor-operator/pkg/apis"
 	promonv1 "github.com/lz006/monitor-operator/pkg/apis/cache/v1"
 	"github.com/lz006/monitor-operator/pkg/awxmgr"
 	"github.com/lz006/monitor-operator/pkg/controller"
 	"github.com/lz006/monitor-operator/pkg/crdmgr"
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
+	promlog "github.com/prometheus/common/log"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+
+	conf "github.com/lz006/monitor-operator/cmd/manager/config"
 )
 
 // Change below variables to serve metrics on different host or port.
@@ -47,11 +51,22 @@ func main() {
 
 	printVersion()
 
-	namespace, err := k8sutil.GetWatchNamespace()
-	if err != nil {
-		log.Error(err, "Failed to get watch namespace")
+	// Read config file before accessing values
+	conf.LoadConfig()
+
+	namespace := viper.GetString("k8s_namespace")
+	if namespace == "" {
+		promlog.Error("Failed to get watch namespace")
 		os.Exit(1)
 	}
+
+	/*
+		namespace, err := k8sutil.GetWatchNamespace()
+		if err != nil {
+			log.Error(err, "Failed to get watch namespace")
+			os.Exit(1)
+		}
+	*/
 
 	// Get a config to talk to the apiserver
 	cfg, err := config.GetConfig()

@@ -5,6 +5,8 @@ import (
 	"net"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	"github.com/lz006/extended-awx-client-go/eawx"
 
 	"github.com/prometheus/common/log"
@@ -33,8 +35,8 @@ func setupK8sAccess(mgr mgr.Manager) {
 func getHostGroups() *cachev1alpha1.HostGroupList {
 
 	hostGroupList := &cachev1alpha1.HostGroupList{}
-	labelSelector := labels.SelectorFromSet(map[string]string{"operator-managed": "true"})
-	listOps := &cli.ListOptions{Namespace: "openshift-monitoring", LabelSelector: labelSelector}
+	labelSelector := labels.SelectorFromSet(map[string]string{viper.GetString("k8s_label_operator_indicator"): "yes"})
+	listOps := &cli.ListOptions{Namespace: viper.GetString("k8s_namespace"), LabelSelector: labelSelector}
 	err := client.List(ctx.TODO(), listOps, hostGroupList)
 	if err != nil {
 		log.Info("Could not get HostGroupList from API Server.")
@@ -47,7 +49,7 @@ func getHostGroups() *cachev1alpha1.HostGroupList {
 func getHostGroup(hgr HostGroup, found *cachev1alpha1.HostGroup) error {
 
 	group := hgr.Group()
-	selector := types.NamespacedName{Name: group.Name(), Namespace: "openshift-monitoring"}
+	selector := types.NamespacedName{Name: group.Name(), Namespace: viper.GetString("k8s_namespace")}
 	err := client.Get(ctx.TODO(), selector, found)
 
 	return err
@@ -107,7 +109,7 @@ func hostGroupForGroupAndHosts(group *eawx.Group, hosts []string) *cachev1alpha1
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      group.Name(),
-			Namespace: "openshift-monitoring",
+			Namespace: viper.GetString("k8s_namespace"),
 			Labels:    ls,
 		},
 		Spec: cachev1alpha1.HostGroupSpec{
@@ -134,7 +136,7 @@ func deleteHostGroup(toDelete *cachev1alpha1.HostGroup) error {
 }
 
 func LabelsForHostGroup(name string) map[string]string {
-	return map[string]string{"k8s-app": name, "operator-managed": "true"}
+	return map[string]string{"k8s-app": name, viper.GetString("k8s_label_operator_indicator"): "yes"}
 }
 
 func ipList(hosts []*eawx.Host) []string {

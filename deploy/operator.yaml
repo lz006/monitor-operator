@@ -20,6 +20,9 @@ spec:
           command:
           - monitor-operator
           imagePullPolicy: Always
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/monitor-operator
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
@@ -31,3 +34,25 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "monitor-operator"
+            - name: AWX_URL
+              valueFrom:
+                secretKeyRef:
+                  name: monitor-operator-secret
+                  key: url
+            - name: AWX_USER
+              valueFrom:
+                secretKeyRef:
+                  name: monitor-operator-secret
+                  key: username
+            - name: AWX_PW
+              valueFrom:
+                secretKeyRef:
+                  name: monitor-operator-secret
+                  key: password
+      volumes:
+        - name: config-volume
+          configMap:
+            name: monitor-operator-conf
+            items:
+            - key: monitor-operator-conf
+              path: monitor-operator-conf.yml

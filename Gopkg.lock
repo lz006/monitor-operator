@@ -2,12 +2,12 @@
 
 
 [[projects]]
-  digest = "1:315ee4e58738f41b338a701e8acb4e991f6d30737c2ae757d2087a1d28d72810"
+  digest = "1:2173c429b0c4654deb4f3e8d1f503c374f93a6b5549d74f9cba797c1e787f8e4"
   name = "cloud.google.com/go"
   packages = ["compute/metadata"]
   pruneopts = "NT"
-  revision = "28a4bc8c44b3acbcc482cff0cdf7de29a4688b61"
-  version = "v0.35.1"
+  revision = "c9474f2f8deb81759839474b6bd1726bbfe1c1c4"
+  version = "v0.36.0"
 
 [[projects]]
   digest = "1:d8ebbd207f3d3266d4423ce4860c9f3794956306ded6c7ba312ecc69cdfbf04c"
@@ -74,15 +74,23 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:3f718788c59f3ec687bcc963cb6034a132327387784c8c04392abaaea9ad7498"
+  digest = "1:2453249730493850718f891fb40b8f1bc932a0265384fc85b269dc04a01d4673"
   name = "github.com/emicklei/go-restful"
   packages = [
     ".",
     "log",
   ]
   pruneopts = "NT"
-  revision = "e37671aced663c8d3a395bd301857e26dcf4340c"
-  version = "v2.8.1"
+  revision = "85d198d05a92d31823b852b4a5928114912e8949"
+  version = "v2.9.0"
+
+[[projects]]
+  digest = "1:1b91ae0dc69a41d4c2ed23ea5cffb721ea63f5037ca4b81e6d6771fbb8f45129"
+  name = "github.com/fsnotify/fsnotify"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
+  version = "v1.4.7"
 
 [[projects]]
   digest = "1:81466b4218bf6adddac2572a30ac733a9255919bc2f470b4827a317bd4ee1756"
@@ -240,6 +248,25 @@
   version = "v0.5.0"
 
 [[projects]]
+  digest = "1:62ba88d64dabadbbad170cf6b0d3bfd1f50c36b1566583a28d99304eb08a9bd2"
+  name = "github.com/hashicorp/hcl"
+  packages = [
+    ".",
+    "hcl/ast",
+    "hcl/parser",
+    "hcl/printer",
+    "hcl/scanner",
+    "hcl/strconv",
+    "hcl/token",
+    "json/parser",
+    "json/scanner",
+    "json/token",
+  ]
+  pruneopts = "NT"
+  revision = "8cb6e5b959231cc1119e43259c4a608f9c51a241"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:aaa38889f11896ee3644d77e17dc7764cc47f5f3d3b488268df2af2b52541c5f"
   name = "github.com/imdario/mergo"
   packages = ["."]
@@ -265,14 +292,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c67efaaa95f851c1ebaa3e2dbfc13834964e95361ba72587a996c417eb43ad8b"
+  digest = "1:3fc0ebda19f2290150a1ac002ef4fdb1b262a62fd562d801ab02f3fc1558fe40"
   name = "github.com/lz006/extended-awx-client-go"
   packages = [
     "eawx",
     "eawx/internal/data",
   ]
   pruneopts = "NT"
-  revision = "83327e14c36d489677f2ba1a542eef91b2f663c1"
+  revision = "33533197755f6a62ee33678f59b174a49d064297"
+
+[[projects]]
+  digest = "1:4244266b65ea535b8ebd109a327720821707b59f9a37bda738946d52ec69442d"
+  name = "github.com/magiconair/properties"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "c2353362d570a7bfa228149c62842019201cfb71"
+  version = "v1.8.0"
 
 [[projects]]
   branch = "master"
@@ -303,6 +338,14 @@
   version = "v1.0.1"
 
 [[projects]]
+  digest = "1:a45ae66dea4c899d79fceb116accfa1892105c251f0dcd9a217ddc276b42ec68"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
+  version = "v1.1.2"
+
+[[projects]]
   digest = "1:2f42fa12d6911c7b7659738758631bec870b7e9b4c6be5444f963cdcfccc191f"
   name = "github.com/modern-go/concurrent"
   packages = ["."]
@@ -320,7 +363,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:adc68fd3aca4c3c6fc991182aa94f657360a6f901aa1224ac58c058873529d95"
+  digest = "1:463755260b95d8bbb2aa9d2fcbf1405528feb70d2fa45dc574bbf8314dfe9f39"
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "pkg/k8sutil",
@@ -329,7 +372,7 @@
     "version",
   ]
   pruneopts = "NT"
-  revision = "2156077650408c236eeb3128e157f83485335eae"
+  revision = "e816ba7b55cc3da99232dfd295902bb252775ffd"
 
 [[projects]]
   digest = "1:93b1d84c5fa6d1ea52f4114c37714cddd84d5b78f151b62bb101128dd51399bf"
@@ -338,6 +381,14 @@
   pruneopts = "NT"
   revision = "adf5a7427709b9deb95d29d3fa8a2bf9cfd388f1"
   version = "v1.2"
+
+[[projects]]
+  digest = "1:1a6e99fe61e963dce0dd87a0856fcfcc1c286db3eba388dd77335aa4ac5623b3"
+  name = "github.com/pelletier/go-toml"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -390,7 +441,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1ff0989c1287a9b47f10bfff607742baa419ccc2bd7e89af5367db0c4db8bf91"
+  digest = "1:0069c5bbd941d86f6b2e3fde6c9c701a74a7a14b5f570674235cd53ed7fa685f"
   name = "github.com/prometheus/procfs"
   packages = [
     ".",
@@ -399,7 +450,7 @@
     "xfs",
   ]
   pruneopts = "NT"
-  revision = "488faf799f863e27e50c516468f76ae8f1da20a5"
+  revision = "f8d8b3f739bd91a7c0462cb55235ef63c79c9abc"
 
 [[projects]]
   digest = "1:1f84287a4ca2c8f729d8155ba4c45915f5854ebbd214e406070779753da68422"
@@ -410,12 +461,47 @@
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:1bc08ec221c4fb25e6f2c019b23fe989fb44573c696983d8e403a3b76cc378e1"
+  name = "github.com/spf13/afero"
+  packages = [
+    ".",
+    "mem",
+  ]
+  pruneopts = "NT"
+  revision = "f4711e4db9e9a1d3887343acb72b2bbfc2f686f5"
+  version = "v1.2.1"
+
+[[projects]]
+  digest = "1:c5e6b121ef3d2043505edaf4c80e5a008cec2513dc8804795eb0479d1555bcf7"
+  name = "github.com/spf13/cast"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "8c9545af88b134710ab1cd196795e7f2388358d7"
+  version = "v1.3.0"
+
+[[projects]]
+  digest = "1:f29f83301ed096daed24a90f4af591b7560cb14b9cc3e1827abbf04db7269ab5"
+  name = "github.com/spf13/jwalterweatherman"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "4a4406e478ca629068e7768fc33f3f044173c0a6"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:9d8420bbf131d1618bde6530af37c3799340d3762cc47210c1d9532a4c3a2779"
   name = "github.com/spf13/pflag"
   packages = ["."]
   pruneopts = "NT"
   revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
   version = "v1.0.3"
+
+[[projects]]
+  digest = "1:958dd1902c8999769574c48476f471791be450a2aacaa2c411c408d22ec84e80"
+  name = "github.com/spf13/viper"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "6d33b5a963d922d182c91e8a1c88d81fd150cfd4"
+  version = "v1.3.1"
 
 [[projects]]
   digest = "1:22f696cee54865fb8e9ff91df7b633f6b8f22037a8015253c6b6a71ca82219c7"
@@ -450,15 +536,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4961a234bb53dc39a63333f068f48255258841fd0b48daeca5f287d331cfbf72"
+  digest = "1:2a3cccb66fafc79f2010b796020701982aba1a3b1f2205018b272d79902c904c"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "NT"
-  revision = "b8fe1690c61389d7d2a8074a507d1d40c5d30448"
+  revision = "193df9c0f06f8bb35fba505183eaf0acc0136505"
 
 [[projects]]
   branch = "master"
-  digest = "1:4010b78f0ab4fcc3ff81e30e6dba92fa68b8520df8dd21b393481fd791360b21"
+  digest = "1:9bab7b5f4a6e7fa7a6326c7d7c77e47bf1c9bbf967be1d2b9fe240dcf9375f60"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -469,7 +555,7 @@
     "idna",
   ]
   pruneopts = "NT"
-  revision = "d26f9f9a57f3fab6a695bec0d84433c2c50f8bbf"
+  revision = "65e2d4e15006aab9813ff8769e768bbf4bb667a0"
 
 [[projects]]
   branch = "master"
@@ -487,7 +573,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3bb5c31099b2b50143828828b5601bb7949d51235a35a194db6778e0d252f519"
+  digest = "1:e7207783a19d8d4fef1fb4090f233f3181b62d482aad4cc21c5c712a6cdba52c"
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -496,7 +582,7 @@
     "windows/svc/eventlog",
   ]
   pruneopts = "NT"
-  revision = "41f3e6584952bb034a481797859f6ab34b6803bd"
+  revision = "3b5209105503162ded1863c307ac66fec31120dd"
 
 [[projects]]
   digest = "1:8c74f97396ed63cc2ef04ebb5fc37bb032871b8fd890a25991ed40974b00cd2a"
@@ -532,7 +618,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:32df9e9e232d9912cadcbddac93f5662aefd0eb5a92b186a3174025ac50e23c9"
+  digest = "1:2b05c675b9c1db719d33bff94fb9653b220e5ce4d25901e0ba78f5318cbd4606"
   name = "golang.org/x/tools"
   packages = [
     "go/ast/astutil",
@@ -549,7 +635,7 @@
     "internal/semver",
   ]
   pruneopts = "NT"
-  revision = "379209517ffe9b1ca12ec8db6abe90d4a6605675"
+  revision = "3744606dbb67b99c60d3f11cb10bd3f9e6dad472"
 
 [[projects]]
   digest = "1:902ffa11f1d8c19c12b05cabffe69e1a16608ad03a8899ebcb9c6bde295660ae"
@@ -880,6 +966,7 @@
     "github.com/operator-framework/operator-sdk/pkg/metrics",
     "github.com/operator-framework/operator-sdk/version",
     "github.com/prometheus/common/log",
+    "github.com/spf13/viper",
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",

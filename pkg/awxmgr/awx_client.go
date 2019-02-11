@@ -4,7 +4,10 @@ import (
 	"runtime/debug"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/spf13/viper"
 
 	"github.com/lz006/extended-awx-client-go/eawx"
 	"github.com/lz006/monitor-operator/pkg/crdmgr"
@@ -29,7 +32,7 @@ func Start(channel chan *map[string]crdmgr.HostGroup) {
 			break
 		} else {
 			log.Error("Could not get connect to AWX. Next attempt in 30 seconds!")
-			time.Sleep(time.Duration(30000 * 1000000))
+			time.Sleep(time.Duration(viper.GetInt("awx_reconnect_span") * 1000000))
 		}
 	}
 
@@ -41,7 +44,7 @@ func Start(channel chan *map[string]crdmgr.HostGroup) {
 
 			err := r.(error)
 			log.Error("Something went wrong. Restarting in 30 seconds! This is caused by: " + err.Error())
-			time.Sleep(time.Duration(30000 * 1000000))
+			time.Sleep(time.Duration(time.Duration(viper.GetInt("awx_mgr_panic_restart") * 1000000)))
 			go Start(channel)
 		}
 	}()
@@ -51,7 +54,7 @@ func Start(channel chan *map[string]crdmgr.HostGroup) {
 
 	// Start infinite loop to sync AWX inventory to HostGroup-Instances in k8s/openshift
 	for true {
-		time.Sleep(time.Duration(5000 * 1000000))
+		time.Sleep(time.Duration(viper.GetInt("awx_poll_interval") * 1000000))
 
 		// poll hosts from awx including host vars
 		hosts := pollHosts(connection)
@@ -91,7 +94,10 @@ func pollHosts(connection *eawx.Connection) []*eawx.Host {
 	hostsResource := connection.Hosts()
 	// Get a list of all Hosts.
 	getHostsRequest := hostsResource.Get()
-	getHostsResponse, err := getHostsRequest.Filter("host_filter", "inventory__name=\"Demo Inventory\"").Send()
+
+	// Make query string
+	query := makeFilterQuery("awx_hosts_filter_query")
+	getHostsResponse, err := getHostsRequest.Filter(query[0], query[1]).Send()
 	if err != nil {
 		panic(err)
 	}
@@ -99,6 +105,22 @@ func pollHosts(connection *eawx.Connection) []*eawx.Host {
 	hosts := getHostsResponse.Results()
 
 	return hosts
+}
+
+func makeFilterQuery(key string) []string {
+	protoQuery := viper.GetString(key)
+	result := make([]string, 2)
+
+	i := strings.Index(protoQuery, "=")
+	if i >= 0 {
+		result[0] = protoQuery[:i]
+		result[1] = protoQuery[i+1:]
+	} else {
+		result[0] = protoQuery
+		result[1] = ""
+	}
+
+	return result
 }
 
 func buildInventoryMap(hosts []*eawx.Host) *map[string][]*eawx.Host {
@@ -130,7 +152,10 @@ func pollGroups(connection *eawx.Connection) []*eawx.Group {
 
 	// Get a list of all Groups.
 	getGroupsRequest := groupsResource.Get()
-	getGroupsResponse, err := getGroupsRequest.Filter("inventory__name", "Demo Inventory").Send()
+
+	// Make query string
+	query := makeFilterQuery("awx_groups_filter_query")
+	getGroupsResponse, err := getGroupsRequest.Filter(query[0], query[1]).Send()
 	if err != nil {
 		panic(err)
 	}

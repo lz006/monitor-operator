@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	promonv1 "github.com/lz006/monitor-operator/pkg/apis/cache/v1"
 	cachev1alpha1 "github.com/lz006/monitor-operator/pkg/apis/cache/v1alpha1"
 	"github.com/lz006/monitor-operator/pkg/crdmgr"
@@ -200,7 +202,7 @@ func (r *ReconcileHostGroup) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Check if Endpoints object differs from current HostGroup configuration
-	if !isEndpointsEqualTo(endpoints, found) && found.GetLabels()["operator-managed"] == "true" {
+	if !isEndpointsEqualTo(endpoints, found) && found.GetLabels()[viper.GetString("k8s_label_operator_indicator")] == "yes" {
 		found.Subsets = endpoints.Subsets
 		err = r.client.Update(context.TODO(), found)
 		if err != nil {
@@ -214,7 +216,7 @@ func (r *ReconcileHostGroup) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Check if Service object differs from current HostGroup configuration
-	if !isServiceEqualTo(service, foundService) && found.GetLabels()["operator-managed"] == "true" {
+	if !isServiceEqualTo(service, foundService) && found.GetLabels()[viper.GetString("k8s_label_operator_indicator")] == "yes" {
 		foundService.Spec.Ports = service.Spec.Ports
 		err = r.client.Update(context.TODO(), foundService)
 		if err != nil {
@@ -228,7 +230,7 @@ func (r *ReconcileHostGroup) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 
 	// Check if ServiceMonitor object differs from current HostGroup configuration
-	if !isServiceMonitorEqualTo(serviceMonitor, foundServiceMonitor) && found.GetLabels()["operator-managed"] == "true" {
+	if !isServiceMonitorEqualTo(serviceMonitor, foundServiceMonitor) && found.GetLabels()[viper.GetString("k8s_label_operator_indicator")] == "yes" {
 		foundServiceMonitor.Spec.Endpoints = serviceMonitor.Spec.Endpoints
 		err = r.client.Update(context.TODO(), foundServiceMonitor)
 		if err != nil {
@@ -299,7 +301,7 @@ func endpointPortsForHostGroup(hgr *cachev1alpha1.HostGroup) []corev1.EndpointPo
 			protocol = corev1.ProtocolTCP
 		case "STCP":
 			protocol = corev1.ProtocolSCTP
-		case "UDO":
+		case "UDP":
 			protocol = corev1.ProtocolUDP
 		default:
 			protocol = corev1.ProtocolTCP
@@ -356,7 +358,7 @@ func servicePortsForHostGroup(hgr *cachev1alpha1.HostGroup) []corev1.ServicePort
 			protocol = corev1.ProtocolTCP
 		case "STCP":
 			protocol = corev1.ProtocolSCTP
-		case "UDO":
+		case "UDP":
 			protocol = corev1.ProtocolUDP
 		default:
 			protocol = corev1.ProtocolTCP

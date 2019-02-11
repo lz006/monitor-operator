@@ -3,6 +3,8 @@ package crdmgr
 import (
 	"reflect"
 
+	"github.com/spf13/viper"
+
 	cachev1alpha1 "github.com/lz006/monitor-operator/pkg/apis/cache/v1alpha1"
 	"github.com/prometheus/common/log"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -34,6 +36,9 @@ func Start(channel chan *map[string]HostGroup, mgr mgr.Manager) {
 						manageInsideHostGroups(hostGroup)
 					case "absent":
 						deleteByAWXHostGroup(hostGroup)
+					case "ignore":
+						// Ignoring hosts/groups from awx.
+						log.Info("Group \"" + group.Name() + "\" is configured te be ingored")
 					default:
 						log.Info("Group: \"" + group.Name() + "\" has unknown type \"" + mType + "\" configured -> Ignoring group")
 					}
@@ -65,11 +70,7 @@ func purgeHostGroups(awxHostGroups *map[string]HostGroup) {
 		if _, ok := (*awxHostGroups)[k8sInstance.Name]; !ok {
 			// AWX HostGroup does not exist anymore so delete it in k8s/openshift
 			deleteHostGroup(&k8sInstance)
-			log.Info("HostGroup: \"" + k8sInstance.GetName() + "\" deleted successfully - No AWX pendant anymore")
-		} else if (*awxHostGroups)[k8sInstance.Name].Group().Vars().MType() == "absent" {
-			// AWX HostGroup still exists but is marked for deletion so delete it in k8s/openshift too
-			deleteHostGroup(&k8sInstance)
-			log.Info("HostGroup: \"" + k8sInstance.GetName() + "\" deleted successfully - Marked as \"absent\" on AWX")
+			log.Info("HostGroup: \"" + k8sInstance.GetName() + "\" deleted successfully - Reason: No AWX pendant anymore")
 		}
 	}
 }
@@ -106,10 +107,11 @@ func manageOutsideHostGroups(candidate HostGroup) {
 	// Clean err
 	err = nil
 
-	// Check if operator-managed label is still "true"
-	managedLabel := found.GetObjectMeta().GetLabels()["operator-managed"]
-	if managedLabel != "true" {
-		log.Info("Skipping HostGroup \"" + candidate.Group().Name() + "\" due to label \"operator-managed\" is not set to \"true\"")
+	// Check if operator-managed label is still "yes"
+	labelKey := viper.GetString("k8s_label_operator_indicator")
+	managedLabel := found.GetObjectMeta().GetLabels()[labelKey]
+	if managedLabel != "yes" {
+		log.Info("Skipping HostGroup \"" + candidate.Group().Name() + "\" due to label \"" + viper.GetString("k8s_namespace") + "\" is not set to \"yes\"")
 		return
 	}
 

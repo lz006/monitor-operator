@@ -1,0 +1,38 @@
+apiVersion: v1
+data:
+  monitor-operator-conf: |
+    ### Monitor Operator Config 
+    # !!!Operator must be restarted after changes were made to this file
+    # Time span between polls of groups from AWX inventories in milliseconds 
+    awx_poll_interval: 10000 #10sec
+
+    # Time span between reconnect attempts to AWX in case of lost connection in 
+    # milliseconds 
+    awx_reconnect_span: 60000 #1min
+
+    # Wait time before restarting AWX client thread in case of fatal error 
+    # (e.g. malformed results from AWX could cause unintended behavior or cause 
+    # golang to panic) 
+    awx_mgr_panic_restart: 60000 #1min
+
+    # Hosts fiter query against AWX api (please see: "<awx host>:80/api/v2") 
+    awx_hosts_filter_query: 'host_filter=inventory__name="Demo Inventory"'
+
+    # Group fiter query against AWX api (please see: "<awx host>:80/api/v2") 
+    awx_groups_filter_query: 'inventory__name=Demo Inventory'
+
+    # Label that indicates k8s/openshift resource instances as managed by 
+    # Monitor-Operator if it is set to "yes" 
+    # Note: If this label will be removed or its value will set to anything 
+    # other than "yes" the resource instance will be ignored 
+    k8s_label_operator_indicator: operator-managed
+
+    # Namespace where to create and watch all the Monitor-Operator managed 
+    # resources 
+    # Note: Must be set to openshift-monitoring because Prometheus Operator 
+    # watches by default that namespace only! 
+    k8s_namespace: openshift-monitoring
+kind: ConfigMap
+metadata:
+  name: monitor-operator-conf
+  namespace: openshift-monitoring
