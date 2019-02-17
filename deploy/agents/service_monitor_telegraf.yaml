@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: telegraf-daemonset
+  name: telegraf-daemonset
+  namespace: openshift-monitoring
+spec:
+  endpoints:
+    - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      interval: 30s
+      port: https
+      scheme: https
+      targetPort: 0
+      tlsConfig:
+        caFile: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+        insecureSkipVerify: true
+  jobLabel: k8s-app
+  namespaceSelector: {}
+  selector:
+    matchLabels:
+      k8s-app: telegraf-daemonset

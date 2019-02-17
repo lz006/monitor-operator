@@ -1,0 +1,65 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: telegraf
+  namespace: openshift-monitoring
+spec:
+  selector:
+      matchLabels:
+        name: telegraf-daemonset
+  template:
+    metadata:
+      labels:
+        name: telegraf-daemonset
+    spec:
+      serviceAccountName: monitor-operator-agent
+      serviceAccount: monitor-operator-agent
+      containers:
+        - name: kube-rbac-proxy
+          image: quay.io/coreos/kube-rbac-proxy:v0.4.1
+          imagePullPolicy: Always
+          args:
+            - '--secure-listen-address=:9100'
+            - '--upstream=http://127.0.0.1:9273/'
+            - '--tls-cert-file=/etc/tls/private/tls.crt'
+            - '--tls-private-key-file=/etc/tls/private/tls.key'
+          ports:
+            - containerPort: 9100
+              name: https
+              protocol: TCP
+          volumeMounts:
+          - mountPath: /etc/tls/private
+            name: node-exporter-tls
+        - name: telegraf-exporter
+          image: praha1889/telegraf:v0.0.1
+          imagePullPolicy: Always
+          env:
+            - name: DOCKERHOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NODEIP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          volumeMounts:
+          - mountPath: /etc/telegraf
+            name: telegraf-config
+          - mountPath: /docker/var/run
+            name: docker-socket
+      volumes:
+        - name: node-exporter-tls
+          secret:
+            defaultMode: 420
+            secretName: node-exporter-tls
+        - name: telegraf-config
+          configMap:
+            name: telegraf-conf
+            items:
+            - key: telegraf.conf
+              path: telegraf.conf
+        - name: docker-socket
+          hostPath:
+            path: /var/run/
+            type: ''
+      terminationGracePeriodSeconds: 10

@@ -44,7 +44,7 @@ func Start(channel chan *map[string]crdmgr.HostGroup) {
 			debug.PrintStack()
 
 			err := r.(error)
-			log.Error("Something went wrong. Restarting in 30 seconds! This is caused by: " + err.Error())
+			log.Error("Something went wrong. Restarting in " + viper.GetString("awx_mgr_panic_restart") + " milliseconds! This is caused by: " + err.Error())
 			time.Sleep(time.Duration(time.Duration(viper.GetInt("awx_mgr_panic_restart") * 1000000)))
 			go Start(channel)
 		}

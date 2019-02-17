@@ -1,0 +1,237 @@
+[
+  {
+    "RepoTags": [
+      "praha1889/redis:v0.0.1"
+    ],
+    "Size": 50834283,
+    "VirtualSize": 50834283
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 50834113,
+    "VirtualSize": 50834113
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 94996441,
+    "VirtualSize": 94996441
+  },
+  {
+    "RepoTags": [
+      "praha1889/stunnel:v0.0.1"
+    ],
+    "Size": 9802486,
+    "VirtualSize": 9802486
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 8675236,
+    "VirtualSize": 8675236
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 7382514,
+    "VirtualSize": 7382514
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 5887127,
+    "VirtualSize": 5887127
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 5887175,
+    "VirtualSize": 5887175
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 5887179,
+    "VirtualSize": 5887179
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 5886350,
+    "VirtualSize": 5886350
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 5885076,
+    "VirtualSize": 5885076
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 5885076,
+    "VirtualSize": 5885076
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 5884664,
+    "VirtualSize": 5884664
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 5884662,
+    "VirtualSize": 5884662
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 7049286,
+    "VirtualSize": 7049286
+  },
+  {
+    "RepoTags": [
+      "praha1889/ose-monitor-client:v0.0.1"
+    ],
+    "Size": 37138471,
+    "VirtualSize": 37138471
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 37535725,
+    "VirtualSize": 37535725
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 37535725,
+    "VirtualSize": 37535725
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 37535728,
+    "VirtualSize": 37535728
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 37535728,
+    "VirtualSize": 37535728
+  },
+  {
+    "RepoTags": [
+      "praha1889/ose-monitor-client:latest"
+    ],
+    "Size": 37224273,
+    "VirtualSize": 37224273
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 7049695,
+    "VirtualSize": 7049695
+  },
+  {
+    "RepoTags": [
+      "stunnel-server:v0.0.1"
+    ],
+    "Size": 7049705,
+    "VirtualSize": 7049705
+  },
+  {
+    "RepoTags": [
+      "stunnel-client:v0.0.1"
+    ],
+    "Size": 7051584,
+    "VirtualSize": 7051584
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 7051572,
+    "VirtualSize": 7051572
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 7051555,
+    "VirtualSize": 7051555
+  },
+  {
+    "RepoTags": [
+      "<none>:<none>"
+    ],
+    "Size": 7051549,
+    "VirtualSize": 7051549
+  },
+  {
+    "RepoTags": [
+      "praha1889/monitoroperator:v0.0.1"
+    ],
+    "Size": 46714892,
+    "VirtualSize": 46714892
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 46714973,
+    "VirtualSize": 46714973
+  },
+  {
+    "RepoTags": "dangling",
+    "Size": 46710801,
+    "VirtualSize": 46710801
+  },
+  {
+    "RepoTags": [
+      "redis:5.0.3-alpine"
+    ],
+    "Size": 50831227,
+    "VirtualSize": 50831227
+  },
+  {
+    "RepoTags": [
+      "alpine:3.9"
+    ],
+    "Size": 5529164,
+    "VirtualSize": 5529164
+  },
+  {
+    "RepoTags": [
+      "monitoroperator:v0.0.1"
+    ],
+    "Size": 43715850,
+    "VirtualSize": 43715850
+  },
+  {
+    "RepoTags": [
+      "redis:latest"
+    ],
+    "Size": 94993886,
+    "VirtualSize": 94993886
+  },
+  {
+    "RepoTags": [
+      "rediscommander/redis-commander:latest"
+    ],
+    "Size": 96632298,
+    "VirtualSize": 96632298
+  },
+  {
+    "RepoTags": [
+      "alpine:3.8"
+    ],
+    "Size": 4413428,
+    "VirtualSize": 4413428
+  },
+  {
+    "RepoTags": [
+      "quay.io/coreos/catalog:0.7.1"
+    ],
+    "Size": 33335476,
+    "VirtualSize": 33335476
+  }
+]
