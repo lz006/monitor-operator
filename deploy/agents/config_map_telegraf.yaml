@@ -37,6 +37,7 @@ data:
     [[outputs.prometheus_client]]
       ## Address to listen on
       listen = ":9273"
+      ip_range = ["127.0.0.1/32"]
       string_as_label = true
 
     [[inputs.exec]]
