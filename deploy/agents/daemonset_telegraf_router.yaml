@@ -1,0 +1,61 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: telegraf-router
+  namespace: openshift-monitoring
+spec:
+  selector:
+      matchLabels:
+        name: telegraf-router
+  template:
+    metadata:
+      labels:
+        name: telegraf-router
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/infra: 'true'
+      serviceAccountName: monitor-operator-agent
+      serviceAccount: monitor-operator-agent
+      hostNetwork: true
+      containers:
+        - name: kube-rbac-proxy
+          image: quay.io/coreos/kube-rbac-proxy:v0.4.1
+          imagePullPolicy: Always
+          args:
+            - '--secure-listen-address=:30111'
+            - '--upstream=http://127.0.0.1:9273/'
+            - '--tls-cert-file=/etc/tls/private/tls.crt'
+            - '--tls-private-key-file=/etc/tls/private/tls.key'
+          ports:
+            - containerPort: 30111
+              name: https
+              protocol: TCP
+          volumeMounts:
+          - mountPath: /etc/tls/private
+            name: node-exporter-tls
+        - name: telegraf-exporter
+          image: praha1889/telegraf:v0.0.1
+          imagePullPolicy: Always
+          env:
+            - name: DOCKERHOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NODEIP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          volumeMounts:
+          - mountPath: /etc/telegraf
+            name: telegraf-config
+      volumes:
+        - name: node-exporter-tls
+          secret:
+            defaultMode: 420
+            secretName: node-exporter-tls
+        - name: telegraf-config
+          configMap:
+            name: telegraf-router-conf
+            items:
+            - key: telegraf.conf
+              path: telegraf.conf

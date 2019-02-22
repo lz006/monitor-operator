@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: telegraf-router
+  namespace: openshift-monitoring
+  labels:
+    k8s-app: telegraf-router
+spec:
+  ports:
+    - name: https
+      port: 30111
+      protocol: TCP
+      targetPort: https
+  selector:
+    name: telegraf-router
+  type: ClusterIP

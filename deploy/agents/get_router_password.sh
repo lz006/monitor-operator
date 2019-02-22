@@ -1,0 +1,1 @@
+oc describe pod router-1-g8mrq | grep STATS_
