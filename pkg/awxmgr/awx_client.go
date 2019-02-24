@@ -32,7 +32,7 @@ func Start(channel chan *map[string]crdmgr.HostGroup) {
 			log.Info("Connection to AWX established")
 			break
 		} else {
-			log.Error("Could not get connect to AWX. Next attempt in " + viper.GetString("awx_reconnect_span") + " milliseconds!")
+			log.Warn("Could not get connect to AWX. Next attempt in " + viper.GetString("awx_reconnect_span") + " milliseconds!")
 			time.Sleep(time.Duration(viper.GetInt("awx_reconnect_span") * 1000000))
 		}
 	}
@@ -44,7 +44,7 @@ func Start(channel chan *map[string]crdmgr.HostGroup) {
 			debug.PrintStack()
 
 			err := r.(error)
-			log.Error("Something went wrong. Restarting in " + viper.GetString("awx_mgr_panic_restart") + " milliseconds! This is caused by: " + err.Error())
+			log.Warn("Something went wrong. Restarting in " + viper.GetString("awx_mgr_panic_restart") + " milliseconds! This is caused by: " + err.Error())
 			time.Sleep(time.Duration(time.Duration(viper.GetInt("awx_mgr_panic_restart") * 1000000)))
 			go Start(channel)
 		}

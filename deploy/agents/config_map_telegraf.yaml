@@ -51,6 +51,13 @@ data:
       name_override = "docker_image_bytes"
       data_format = "json"
       tag_keys = ["repotags"]
+
+    [[inputs.prometheus]]
+      ## An array of urls to scrape metrics from.
+      # router
+      urls = [
+        "http://127.0.0.1:2112/metrics"
+        ]
 kind: ConfigMap
 metadata:
   name: telegraf-conf

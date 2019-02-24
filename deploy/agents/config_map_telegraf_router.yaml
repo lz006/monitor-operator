@@ -46,6 +46,23 @@ data:
       urls = [
         "http://admin:IJHZeLJxh6@127.0.0.1:1936/metrics"
         ]
+
+    # HTTP/HTTPS request given an address a method and a timeout
+    [[inputs.http_response]]
+      ## Server address (default http://localhost)
+      address = "https://master.fritz.box:8443"
+
+      ## Set response_timeout (default 5 seconds)
+      # response_timeout = "5s"
+
+      ## HTTP Request Method
+      # method = "GET"
+
+      ## Whether to follow redirects from the server (defaults to false)
+      follow_redirects = true
+
+      ## Use TLS but skip chain & host verification
+      insecure_skip_verify = true
 kind: ConfigMap
 metadata:
   name: telegraf-router-conf
