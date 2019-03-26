@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  stunnel.conf: |-
+    cert = /etc/stunnel/cert/private.pem
+    pid = /var/run/stunnel.pid
+    client = yes
+    foreground = yes
+    [ose-client-monitor]
+    accept = 0.0.0.0:8888
+    connect = stunnel-server.openshift-logging.svc:8888
+kind: ConfigMap
+metadata:
+  name: stunnel-client-conf
+  namespace: openshift-monitoring

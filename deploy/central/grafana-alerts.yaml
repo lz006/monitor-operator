@@ -1,0 +1,26 @@
+# stunnel client container in grafana config ergänzen
+
+#Alert Messages Examples:
+
+#1
+action: delete
+resource: storage-nodes
+reproach: diskpressure
+attributes:
+    awx_template:
+        id: 6
+
+#2        
+action: delete
+resource: pod
+reproach: spy
+attributes:
+    time:
+        range: 96h
+    terms:
+        geodst: "za;us"
+        geosrc: "za;us"
+    aggs:
+        field: "dstPod.keyword;srcPod.keyword"
+        sources: "dstNamespace;srcNamespace"
+         
